@@ -1,4 +1,4 @@
-const STORAGE_KEY = "goodshotz-aucitya-project-hub-v1";
+const STORAGE_KEY = "goodshotz-aucitya-project-hub-v2";
 const SYNC_CONFIG = window.GS_PROJECT_SYNC || {};
 
 const defaultState = {
@@ -6,91 +6,7 @@ const defaultState = {
     updatedAt: new Date().toISOString(),
     updatedBy: randomId()
   },
-  projects: [
-    {
-      id: "p-kashmir",
-      name: "Kashmir Autumn Tour",
-      owner: "GoodShotz",
-      strategy: "Growth",
-      status: "active",
-      start: "2026-06-01",
-      end: "2026-10-25",
-      budget: 850000,
-      spent: 320000,
-      color: "#f2a7bd",
-      note: "Launch, sell, and deliver a premium field experience with strong creative output.",
-      tasks: [
-        { id: "t-k1", title: "Freeze hotel block and local transport", owner: "Aucitya", due: "2026-06-10", status: "doing" },
-        { id: "t-k2", title: "Publish itinerary and early bird offer", owner: "GoodShotz", due: "2026-06-18", status: "todo" },
-        { id: "t-k3", title: "Prepare participant welcome kit", owner: "Both", due: "2026-09-20", status: "todo" }
-      ],
-      milestones: [
-        { id: "m-k1", title: "Itinerary locked", due: "2026-06-15", status: "upcoming" },
-        { id: "m-k2", title: "50% seats sold", due: "2026-08-15", status: "upcoming" },
-        { id: "m-k3", title: "Tour delivered", due: "2026-10-25", status: "upcoming" }
-      ]
-    },
-    {
-      id: "p-content",
-      name: "GoodShotz Content Engine",
-      owner: "Both",
-      strategy: "Creative",
-      status: "active",
-      start: "2026-05-20",
-      end: "2026-08-30",
-      budget: 240000,
-      spent: 76000,
-      color: "#bfe5ff",
-      note: "Build a steady publishing rhythm across workshops, tour stories, reels, and newsletters.",
-      tasks: [
-        { id: "t-c1", title: "Create June editorial calendar", owner: "Aucitya", due: "2026-05-28", status: "doing" },
-        { id: "t-c2", title: "Cut Hampi behind-the-scenes reel", owner: "GoodShotz", due: "2026-06-05", status: "todo" }
-      ],
-      milestones: [
-        { id: "m-c1", title: "30-day content calendar ready", due: "2026-05-30", status: "upcoming" },
-        { id: "m-c2", title: "Newsletter relaunch", due: "2026-06-20", status: "upcoming" }
-      ]
-    },
-    {
-      id: "p-ops",
-      name: "Home Ops and Admin",
-      owner: "Aucitya",
-      strategy: "Operations",
-      status: "watch",
-      start: "2026-05-25",
-      end: "2026-07-31",
-      budget: 180000,
-      spent: 112000,
-      color: "#bfebd5",
-      note: "Keep financial, home, and legal admin visible so nothing lives only in memory.",
-      tasks: [
-        { id: "t-o1", title: "Renew insurance and document folder", owner: "Aucitya", due: "2026-06-07", status: "todo" },
-        { id: "t-o2", title: "Monthly cashflow review", owner: "Both", due: "2026-06-01", status: "todo" }
-      ],
-      milestones: [
-        { id: "m-o1", title: "Admin review complete", due: "2026-06-15", status: "upcoming" }
-      ]
-    },
-    {
-      id: "p-finance",
-      name: "Quarterly Budget Reset",
-      owner: "Both",
-      strategy: "Finance",
-      status: "planning",
-      start: "2026-06-10",
-      end: "2026-07-10",
-      budget: 50000,
-      spent: 5000,
-      color: "#f5e8a8",
-      note: "Review tour profitability, household spending, and reserves for the next quarter.",
-      tasks: [
-        { id: "t-f1", title: "Tag May expenses by project", owner: "GoodShotz", due: "2026-06-12", status: "todo" }
-      ],
-      milestones: [
-        { id: "m-f1", title: "Budget decisions signed off", due: "2026-07-10", status: "upcoming" }
-      ]
-    }
-  ]
+  projects: []
 };
 
 let state = loadState();
@@ -135,7 +51,7 @@ function loadState() {
     const parsed = JSON.parse(saved);
     return normalizeState(parsed);
   } catch {
-    return structuredClone(defaultState);
+    return clone(defaultState);
   }
 }
 
@@ -151,7 +67,7 @@ function normalizeState(nextState) {
     milestones: Array.isArray(project.milestones) ? project.milestones : []
   }));
 
-  return normalized.projects.length ? normalized : clone(defaultState);
+  return normalized;
 }
 
 function saveState({ broadcast = true, cloud = true } = {}) {
@@ -189,7 +105,7 @@ function uid(prefix) {
 
 function projectProgress(project) {
   const items = [...project.tasks, ...project.milestones];
-  if (!items.length) return project.status === "done" ? 100 : 12;
+  if (!items.length) return project.status === "done" ? 100 : 0;
   const done = items.filter((item) => item.status === "done").length;
   return Math.round((done / items.length) * 100);
 }
@@ -267,15 +183,19 @@ function renderMetrics() {
 }
 
 function renderProjectCards() {
-  els.projectCards.innerHTML = state.projects
+  const projects = state.projects
     .filter((project) => project.status !== "done")
-    .slice(0, 4)
-    .map(projectCard)
-    .join("");
+    .slice(0, 4);
+
+  els.projectCards.innerHTML = projects.length
+    ? projects.map(projectCard).join("")
+    : emptyState("No projects yet", "Add your first project to start the shared dashboard.");
 }
 
 function renderProjectBoard() {
-  els.projectBoard.innerHTML = state.projects.map(projectCard).join("");
+  els.projectBoard.innerHTML = state.projects.length
+    ? state.projects.map(projectCard).join("")
+    : emptyState("No projects yet", "Create the first project and it will become the first visible entry.");
 }
 
 function projectCard(project) {
@@ -323,6 +243,12 @@ function renderMilestones() {
 }
 
 function renderGantt() {
+  if (!state.projects.length) {
+    els.gantt.innerHTML = emptyState("No timeline yet", "Add a project first, then its date range will appear here.");
+    els.gantt.style.setProperty("--month-count", 1);
+    return;
+  }
+
   const starts = state.projects.map((project) => project.start).sort();
   const ends = state.projects.map((project) => project.end).sort();
   const start = starts[0] || todayISO();
@@ -417,7 +343,7 @@ function renderBudget() {
       <div class="progress"><span style="width:${budget ? Math.min(100, (spent / budget) * 100) : 0}%"></span></div>
     </aside>
     <div class="budget-table">
-      ${state.projects.map((project) => {
+      ${state.projects.length ? state.projects.map((project) => {
         const used = project.budget ? Math.round((Number(project.spent || 0) / Number(project.budget)) * 100) : 0;
         return `
           <article class="budget-row">
@@ -427,7 +353,7 @@ function renderBudget() {
             <span>${used}% used</span>
           </article>
         `;
-      }).join("")}
+      }).join("") : emptyState("No budgets yet", "Create a project and add its budget to see it here.")}
     </div>
   `;
 }
@@ -463,6 +389,15 @@ function renderProjectOptions() {
   els.projectOptions.forEach((select) => {
     select.innerHTML = options;
   });
+}
+
+function emptyState(title, copy) {
+  return `
+    <article class="empty-state">
+      <strong>${title}</strong>
+      <p>${copy}</p>
+    </article>
+  `;
 }
 
 function openProjectModal(projectId) {
@@ -517,10 +452,7 @@ function saveProject(formData) {
     state.projects.push({
       ...payload,
       tasks: [],
-      milestones: [
-        { id: uid("m"), title: "Kickoff", due: payload.start, status: "upcoming" },
-        { id: uid("m"), title: "Delivery", due: payload.end, status: "upcoming" }
-      ]
+      milestones: []
     });
   }
 
@@ -531,7 +463,10 @@ function saveProject(formData) {
 
 function saveTask(formData) {
   const project = state.projects.find((item) => item.id === formData.get("projectId"));
-  if (!project) return;
+  if (!project) {
+    showToast("Add a project first.");
+    return;
+  }
   project.tasks.push({
     id: uid("t"),
     title: String(formData.get("title")).trim(),
@@ -546,7 +481,10 @@ function saveTask(formData) {
 
 function saveMilestone(formData) {
   const project = state.projects.find((item) => item.id === formData.get("projectId"));
-  if (!project) return;
+  if (!project) {
+    showToast("Add a project first.");
+    return;
+  }
   project.milestones.push({
     id: uid("m"),
     title: String(formData.get("title")).trim(),
@@ -732,12 +670,20 @@ document.addEventListener("click", (event) => {
   if (action === "close-modal") els.projectModal.close();
   if (action === "delete-project") deleteProject();
   if (action === "add-task") {
+    if (!state.projects.length) {
+      showToast("Add a project first.");
+      return;
+    }
     els.taskForm.reset();
     els.taskForm.elements.due.value = todayISO();
     els.taskModal.showModal();
   }
   if (action === "close-task-modal") els.taskModal.close();
   if (action === "add-milestone") {
+    if (!state.projects.length) {
+      showToast("Add a project first.");
+      return;
+    }
     els.milestoneForm.reset();
     els.milestoneForm.elements.due.value = todayISO();
     els.milestoneModal.showModal();

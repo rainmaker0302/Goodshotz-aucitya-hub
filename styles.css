@@ -470,6 +470,23 @@ button {
   margin-top: 12px;
 }
 
+.empty-state {
+  border: 1px dashed rgba(36, 34, 44, 0.22);
+  border-radius: var(--radius);
+  padding: 18px;
+  background: rgba(255, 255, 255, 0.48);
+}
+
+.empty-state strong {
+  display: block;
+  margin-bottom: 6px;
+}
+
+.empty-state p {
+  margin: 0;
+  color: var(--muted);
+}
+
 .milestone-item,
 .budget-row {
   display: grid;
