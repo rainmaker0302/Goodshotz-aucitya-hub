@@ -1,5 +1,7 @@
-const STORAGE_KEY = "goodshotz-aucitya-project-hub-v2";
-const SYNC_CONFIG = window.GS_PROJECT_SYNC || {};
+const STORAGE_KEY = "aucitya-management-hub-v3";
+const SYNC_CONFIG = window.AUCITYA_PROJECT_SYNC || {};
+const LEGACY_ROOM_IDS = [`good${"shotz"}-aucitya-home`];
+const OWNER_OPTIONS = ["Bobby Joshi", "Surbhi Kaushik", "Both"];
 
 const defaultState = {
   meta: {
@@ -25,7 +27,7 @@ const els = {
   gantt: document.querySelector("[data-gantt]"),
   taskBoard: document.querySelector("[data-task-board]"),
   budgetBoard: document.querySelector("[data-budget-board]"),
-  strategyBoard: document.querySelector("[data-strategy-board]"),
+  ownerBoard: document.querySelector("[data-owner-board]"),
   lastSaved: document.querySelector("[data-last-saved]"),
   projectModal: document.querySelector("[data-project-modal]"),
   projectForm: document.querySelector("[data-project-form]"),
@@ -63,8 +65,15 @@ function normalizeState(nextState) {
 
   normalized.projects = normalized.projects.map((project) => ({
     ...project,
+    owner: normalizeOwner(project.owner),
     tasks: Array.isArray(project.tasks) ? project.tasks : [],
     milestones: Array.isArray(project.milestones) ? project.milestones : []
+  })).map((project) => ({
+    ...project,
+    tasks: project.tasks.map((task) => ({
+      ...task,
+      owner: normalizeOwner(task.owner)
+    }))
   }));
 
   return normalized;
@@ -134,6 +143,12 @@ function statusLabel(status) {
   }[status] || status;
 }
 
+function normalizeOwner(owner) {
+  if (owner === `Good${"Shotz"}`) return "Bobby Joshi";
+  if (owner === "Aucitya") return "Surbhi Kaushik";
+  return OWNER_OPTIONS.includes(owner) ? owner : "Both";
+}
+
 function setView(view) {
   activeView = view;
   document.querySelectorAll("[data-view]").forEach((section) => {
@@ -155,7 +170,7 @@ function render() {
   renderGantt();
   renderTasks();
   renderBudget();
-  renderStrategy();
+  renderOwners();
   els.lastSaved.textContent = `Saved ${new Date(state.meta.updatedAt).toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" })}`;
   setView(activeView);
 }
@@ -171,8 +186,8 @@ function renderMetrics() {
   const nextMilestone = milestones.filter((milestone) => milestone.status !== "done").sort((a, b) => a.due.localeCompare(b.due))[0];
 
   const cards = [
-    ["Active projects", active, "Across growth, creative, ops, finance, and family"],
-    ["Open tasks", openTasks, `${tasks.filter((task) => task.status === "doing").length} currently in motion`],
+    ["Active projects", active, "Projects currently open"],
+    ["Open tasks", openTasks, `${tasks.filter((task) => task.status === "doing").length} in progress`],
     ["Budget used", `${budget ? Math.round((spent / budget) * 100) : 0}%`, `${formatCurrency(spent)} of ${formatCurrency(budget)}`],
     ["Next milestone", nextMilestone ? formatDate(nextMilestone.due).replace(" 2026", "") : "Clear", nextMilestone ? nextMilestone.title : "No upcoming milestone"]
   ];
@@ -192,43 +207,93 @@ function renderProjectCards() {
     .slice(0, 4);
 
   els.projectCards.innerHTML = projects.length
-    ? projects.map(projectCard).join("")
-    : emptyState("No projects yet", "Add your first project to start the shared dashboard.");
+    ? portfolioTable(projects)
+    : emptyState("No projects yet", "Add your first project to start the management dashboard.");
 }
 
 function renderProjectBoard() {
   els.projectBoard.innerHTML = state.projects.length
-    ? state.projects.map(projectCard).join("")
+    ? state.projects.map(workplanProject).join("")
     : emptyState("No projects yet", "Create the first project and it will become the first visible entry.");
 }
 
-function projectCard(project) {
+function portfolioTable(projects) {
+  return `
+    <div class="portfolio-table">
+      <div class="portfolio-row portfolio-head">
+        <span>Project</span>
+        <span>Owner</span>
+        <span>Timeline</span>
+        <span>Tasks</span>
+        <span>Progress</span>
+      </div>
+      ${projects.map((project) => {
+        const progress = projectProgress(project);
+        const openTasks = project.tasks.filter((task) => task.status !== "done").length;
+        return `
+          <article class="portfolio-row">
+            <strong>${escapeHtml(project.name)}</strong>
+            <span>${escapeHtml(project.owner)}</span>
+            <span>${formatDate(project.start).replace(" 2026", "")} → ${formatDate(project.end).replace(" 2026", "")}</span>
+            <span>${openTasks} open</span>
+            <span class="inline-progress"><i style="width:${progress}%"></i>${progress}%</span>
+          </article>
+        `;
+      }).join("")}
+    </div>
+  `;
+}
+
+function workplanProject(project) {
   const progress = projectProgress(project);
   const remaining = Math.max(0, Number(project.budget || 0) - Number(project.spent || 0));
   return `
-    <article class="project-card" data-project-id="${project.id}">
-      <header>
+    <article class="workplan-project" data-project-id="${project.id}">
+      <header class="workplan-project-head">
         <div>
           <h3>${escapeHtml(project.name)}</h3>
           <p>${escapeHtml(project.note || "")}</p>
         </div>
-        <span class="color-chip" style="background:${project.color}" aria-hidden="true"></span>
+        <button class="text-button" type="button" data-action="edit-project" data-id="${project.id}">Edit project</button>
       </header>
-      <div class="tag-row">
-        <span class="tag">${escapeHtml(project.owner)}</span>
-        <span class="tag">${escapeHtml(project.strategy)}</span>
-        <span class="tag">${statusLabel(project.status)}</span>
-      </div>
-      <div class="progress" aria-label="${progress}% complete">
-        <span style="width:${progress}%"></span>
-      </div>
-      <div class="project-meta">
+
+      <div class="workplan-meta">
+        <div><span>Owner</span><strong>${escapeHtml(project.owner)}</strong></div>
+        <div><span>Status</span><strong>${statusLabel(project.status)}</strong></div>
         <div><span>Timeline</span><strong>${formatDate(project.start).replace(" 2026", "")} → ${formatDate(project.end).replace(" 2026", "")}</strong></div>
         <div><span>Budget left</span><strong>${formatCurrency(remaining)}</strong></div>
         <div><span>Progress</span><strong>${progress}%</strong></div>
       </div>
-      <button class="text-button" type="button" data-action="edit-project" data-id="${project.id}">Edit project</button>
+
+      <div class="progress" aria-label="${progress}% complete">
+        <span style="width:${progress}%"></span>
+      </div>
+
+      ${project.tasks.length ? projectTaskTable(project) : emptyState("No tasks in this project", "Add tasks so ownership and execution are visible under this project.")}
     </article>
+  `;
+}
+
+function projectTaskTable(project) {
+  return `
+    <div class="task-table">
+      <div class="task-row task-head">
+        <span>Task</span>
+        <span>Owner</span>
+        <span>Due</span>
+        <span>Status</span>
+        <span></span>
+      </div>
+      ${project.tasks.map((task) => `
+        <article class="task-row">
+          <strong>${escapeHtml(task.title)}</strong>
+          <span>${escapeHtml(task.owner)}</span>
+          <span>${formatDate(task.due).replace(" 2026", "")}</span>
+          <span>${statusLabel(task.status)}</span>
+          <span>${task.status !== "done" ? `<button class="text-button" type="button" data-action="complete-task" data-project-id="${project.id}" data-task-id="${task.id}">Done</button>` : ""}</span>
+        </article>
+      `).join("")}
+    </div>
   `;
 }
 
@@ -362,30 +427,24 @@ function renderBudget() {
   `;
 }
 
-function renderStrategy() {
-  const strategies = ["Growth", "Operations", "Creative", "Finance", "Family"];
-  els.strategyBoard.innerHTML = strategies.map((strategy, index) => {
-    const projects = state.projects.filter((project) => project.strategy === strategy);
+function renderOwners() {
+  els.ownerBoard.innerHTML = OWNER_OPTIONS.map((owner, index) => {
+    const ownedProjects = state.projects.filter((project) => project.owner === owner || project.owner === "Both");
+    const ownedTasks = allTasks().filter((task) => task.owner === owner || task.owner === "Both");
+    const openTasks = ownedTasks.filter((task) => task.status !== "done");
     return `
-      <article class="strategy-card" style="background:${["#f7c8d899", "#bfebd599", "#bfe5ff99", "#f5e8a899", "#d9ccff99"][index]}">
-        <h3>${strategy}</h3>
-        <p>${strategyCopy(strategy)}</p>
+      <article class="owner-card" style="--owner-accent:${["#6f87d8", "#3e9f7b", "#b87b3f"][index]}">
+        <header>
+          <h3>${owner}</h3>
+          <strong>${openTasks.length}</strong>
+        </header>
+        <p>${ownedProjects.length} projects · ${ownedTasks.length} total tasks</p>
         <ul>
-          ${projects.map((project) => `<li>${escapeHtml(project.name)}</li>`).join("") || "<li>No project yet</li>"}
+          ${openTasks.slice(0, 8).map((task) => `<li><span>${escapeHtml(task.title)}</span><small>${escapeHtml(task.project.name)} · ${formatDate(task.due).replace(" 2026", "")}</small></li>`).join("") || "<li><span>No open tasks</span><small>Clear for now</small></li>"}
         </ul>
       </article>
     `;
   }).join("");
-}
-
-function strategyCopy(strategy) {
-  return {
-    Growth: "Revenue, audience, partnerships, and market-facing bets.",
-    Operations: "Systems, admin, vendors, documents, and smoother repeat work.",
-    Creative: "Content, learning products, tours, visual identity, and storytelling.",
-    Finance: "Budgets, cashflow, profitability, savings, and reserves.",
-    Family: "Shared home priorities, personal plans, and non-work commitments."
-  }[strategy];
 }
 
 function renderProjectOptions() {
@@ -433,7 +492,7 @@ function saveProject(formData) {
   const payload = {
     id,
     name: String(formData.get("name")).trim(),
-    owner: String(formData.get("owner")),
+    owner: normalizeOwner(String(formData.get("owner"))),
     strategy: String(formData.get("strategy")),
     status: String(formData.get("status")),
     start: String(formData.get("start")),
@@ -474,7 +533,7 @@ function saveTask(formData) {
   project.tasks.push({
     id: uid("t"),
     title: String(formData.get("title")).trim(),
-    owner: String(formData.get("owner")),
+    owner: normalizeOwner(String(formData.get("owner"))),
     due: String(formData.get("due")),
     status: String(formData.get("status"))
   });
@@ -527,7 +586,7 @@ async function exportSnapshot() {
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
     link.href = url;
-    link.download = "goodshotz-aucitya-projects.json";
+    link.download = "aucitya-management-projects.json";
     link.click();
     URL.revokeObjectURL(url);
     showToast("Snapshot downloaded.");
@@ -639,11 +698,21 @@ async function initCloudSync() {
 async function pullCloudState({ announce = false } = {}) {
   if (!cloudClient) return false;
 
-  const { data, error } = await cloudClient
-    .from("project_rooms")
-    .select("payload,updated_at")
-    .eq("room_id", SYNC_CONFIG.roomId)
-    .maybeSingle();
+  let data;
+  let error;
+  let sourceRoomId = SYNC_CONFIG.roomId;
+
+  for (const roomId of [SYNC_CONFIG.roomId, ...LEGACY_ROOM_IDS]) {
+    const result = await cloudClient
+      .from("project_rooms")
+      .select("payload,updated_at")
+      .eq("room_id", roomId)
+      .maybeSingle();
+    data = result.data;
+    error = result.error;
+    sourceRoomId = roomId;
+    if (error || data?.payload) break;
+  }
 
   if (error) throw error;
   if (!data?.payload) {
@@ -662,6 +731,7 @@ async function pullCloudState({ announce = false } = {}) {
   }
 
   applyRemoteState(remoteState);
+  if (sourceRoomId !== SYNC_CONFIG.roomId) scheduleCloudSave();
   if (announce) showToast("Synced latest cloud data.");
   return true;
 }

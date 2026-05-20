@@ -3,28 +3,28 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-    <title>GoodShotz and Aucitya | Project Hub</title>
+    <title>Aucitya | Management Hub</title>
     <meta
       name="description"
-      content="A shared project management hub for GoodShotz and Aucitya, with projects, strategies, Gantt charts, budgets, tasks, ownership, milestones, and dashboards."
+      content="Aucitya management hub for projects, tasks, owners, timelines, progress, milestones, budgets, and dashboards."
     >
     <meta name="theme-color" content="#f7e7ee">
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-title" content="G+A Hub">
+    <meta name="apple-mobile-web-app-title" content="Aucitya">
     <link rel="preload" href="assets/fonts/bricolage-grotesque-latin.woff2" as="font" type="font/woff2" crossorigin>
     <link rel="preload" href="assets/fonts/fraunces-latin.woff2" as="font" type="font/woff2" crossorigin>
     <link rel="stylesheet" href="styles.css">
-    <script src="config.js"></script>
-    <script src="app.js?v=3" defer></script>
+    <script src="config.js?v=2"></script>
+    <script src="app.js?v=4" defer></script>
   </head>
   <body>
     <div class="app-shell">
       <aside class="sidebar" aria-label="Project hub navigation">
-        <a class="hub-brand" href="./" aria-label="GoodShotz and Aucitya project hub">
-          <span class="hub-mark">G+A</span>
+        <a class="hub-brand" href="./" aria-label="Aucitya management hub">
+          <span class="hub-mark">A</span>
           <span>
-            <strong>GoodShotz</strong>
-            <small>and Aucitya</small>
+            <strong>Aucitya</strong>
+            <small>Management hub</small>
           </span>
         </a>
 
@@ -44,8 +44,8 @@
           <button type="button" data-view-target="budget" aria-pressed="false">
             <span aria-hidden="true">₹</span> Budget
           </button>
-          <button type="button" data-view-target="strategy" aria-pressed="false">
-            <span aria-hidden="true">✦</span> Strategy
+          <button type="button" data-view-target="owners" aria-pressed="false">
+            <span aria-hidden="true">◉</span> Owners
           </button>
         </nav>
 
@@ -63,8 +63,8 @@
       <main class="workspace">
         <header class="topbar">
           <div>
-            <p class="eyebrow">Shared command center</p>
-            <h1>Projects, strategy, money, and momentum.</h1>
+            <p class="eyebrow">Aucitya command center</p>
+            <h1>Projects, tasks, owners, timelines.</h1>
           </div>
           <div class="topbar-actions">
             <button class="icon-button" type="button" data-action="import" aria-label="Import data" title="Import data">⇩</button>
@@ -87,7 +87,7 @@
           <div class="dashboard-grid">
             <section class="panel wide-panel" aria-labelledby="portfolio-title">
               <div class="panel-head">
-                <h3 id="portfolio-title">Active projects</h3>
+                <h3 id="portfolio-title">Project workplan</h3>
                 <button class="text-button" type="button" data-action="add-project">Add project</button>
               </div>
               <div class="project-list" data-project-cards></div>
@@ -107,7 +107,7 @@
           <div class="section-title">
             <div>
               <p class="eyebrow">Plan</p>
-              <h2 id="projects-title">Projects and ownership</h2>
+              <h2 id="projects-title">Projects → tasks → owners</h2>
             </div>
             <button class="button primary" type="button" data-action="add-project">New project</button>
           </div>
@@ -149,14 +149,14 @@
           <div class="budget-layout" data-budget-board></div>
         </section>
 
-        <section class="view" id="strategy" data-view="strategy" aria-labelledby="strategy-title">
+        <section class="view" id="owners" data-view="owners" aria-labelledby="owners-title">
           <div class="section-title">
             <div>
-              <p class="eyebrow">Direction</p>
-              <h2 id="strategy-title">Strategy map</h2>
+              <p class="eyebrow">Ownership</p>
+              <h2 id="owners-title">Owner workload</h2>
             </div>
           </div>
-          <div class="strategy-grid" data-strategy-board></div>
+          <div class="owner-grid" data-owner-board></div>
         </section>
       </main>
     </div>
@@ -180,13 +180,13 @@
           <label>
             Owner
             <select name="owner">
-              <option>GoodShotz</option>
-              <option>Aucitya</option>
+              <option>Bobby Joshi</option>
+              <option>Surbhi Kaushik</option>
               <option>Both</option>
             </select>
           </label>
           <label>
-            Strategy
+            Category
             <select name="strategy">
               <option>Growth</option>
               <option>Operations</option>
@@ -260,8 +260,8 @@
           <label>
             Owner
             <select name="owner">
-              <option>GoodShotz</option>
-              <option>Aucitya</option>
+              <option>Bobby Joshi</option>
+              <option>Surbhi Kaushik</option>
               <option>Both</option>
             </select>
           </label>

@@ -1,4 +1,4 @@
-# GoodShotz and Aucitya Project Hub
+# Aucitya Management Hub
 
 This is a standalone local-first project management web app. It is separate from any existing website and can be opened directly from this folder.
 
@@ -14,8 +14,8 @@ Open `index.html` in a browser, or serve this folder with any small static serve
 - Gantt chart view
 - Task board
 - Budgets and spend tracking
-- Ownership by GoodShotz, Aucitya, or both
-- Strategy map
+- Ownership by Bobby Joshi, Surbhi Kaushik, or both
+- Owner workload view
 - Local autosave
 - Cross-tab live updates on the same device
 - Optional Supabase realtime sync between iPhones

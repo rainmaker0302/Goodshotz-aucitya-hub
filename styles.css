@@ -13,11 +13,11 @@
 }
 
 :root {
-  --ink: #24222c;
-  --muted: #6d6877;
-  --paper: #fffaf7;
-  --panel: rgba(255, 255, 255, 0.78);
-  --line: rgba(36, 34, 44, 0.13);
+  --ink: #20242c;
+  --muted: #667085;
+  --paper: #f6f7fb;
+  --panel: rgba(255, 255, 255, 0.9);
+  --line: rgba(32, 36, 44, 0.14);
   --pink: #f7c8d8;
   --peach: #ffd8b8;
   --mint: #bfebd5;
@@ -27,7 +27,7 @@
   --coral: #ff8f86;
   --green: #4b9d7a;
   --blue: #4e83c8;
-  --shadow: 0 24px 80px rgba(85, 69, 104, 0.18);
+  --shadow: 0 18px 54px rgba(30, 41, 59, 0.14);
   --radius: 8px;
   --font-body: "GS Bricolage", Arial, sans-serif;
   --font-display: "GS Fraunces", Georgia, serif;
@@ -40,7 +40,7 @@
 html {
   min-height: 100%;
   background:
-    linear-gradient(135deg, rgba(247, 200, 216, 0.52), rgba(191, 235, 213, 0.36) 38%, rgba(191, 229, 255, 0.46) 70%, rgba(245, 232, 168, 0.46)),
+    linear-gradient(135deg, rgba(191, 229, 255, 0.28), rgba(191, 235, 213, 0.22) 44%, rgba(255, 216, 184, 0.22)),
     var(--paper);
 }
 
@@ -81,7 +81,7 @@ button {
   gap: 24px;
   padding: 22px;
   border-right: 1px solid var(--line);
-  background: rgba(255, 250, 247, 0.74);
+  background: rgba(255, 255, 255, 0.82);
   backdrop-filter: blur(22px);
 }
 
@@ -100,7 +100,7 @@ button {
   place-items: center;
   border: 1px solid var(--line);
   border-radius: 50%;
-  background: linear-gradient(135deg, var(--pink), var(--sky));
+  background: linear-gradient(135deg, #dbeafe, #bbf7d0);
   font-weight: 800;
 }
 
@@ -148,14 +148,15 @@ button {
 }
 
 .view-nav button.is-active {
-  box-shadow: inset 3px 0 0 var(--coral);
+  box-shadow: inset 3px 0 0 var(--blue);
 }
 
 .sync-card,
 .panel,
 .metric-card,
 .project-card,
-.strategy-card,
+.workplan-project,
+.owner-card,
 .kanban-column,
 .budget-summary {
   border: 1px solid var(--line);
@@ -223,8 +224,8 @@ button {
 }
 
 .topbar h1 {
-  max-width: 780px;
-  font-size: clamp(2.2rem, 5vw, 4.8rem);
+  max-width: 760px;
+  font-size: clamp(2rem, 4vw, 3.7rem);
 }
 
 .section-title h2,
@@ -340,7 +341,7 @@ button {
   display: block;
   margin: 12px 0 8px;
   font-family: var(--font-display);
-  font-size: 2.4rem;
+  font-size: 2.1rem;
   line-height: 0.95;
 }
 
@@ -362,7 +363,7 @@ button {
 
 .panel h3,
 .project-card h3,
-.strategy-card h3,
+.owner-card h3,
 .kanban-column h3,
 .budget-summary h3 {
   margin: 0;
@@ -371,7 +372,7 @@ button {
 
 .project-list,
 .project-board,
-.strategy-grid,
+.owner-grid,
 .budget-layout {
   display: grid;
   gap: 14px;
@@ -382,7 +383,7 @@ button {
 }
 
 .project-board {
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: 1fr;
 }
 
 .project-card {
@@ -408,10 +409,123 @@ button {
 }
 
 .project-card p,
-.strategy-card p,
+.owner-card p,
 .task-card p {
   margin: 0;
   color: var(--muted);
+}
+
+.portfolio-table,
+.task-table {
+  display: grid;
+  gap: 0;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: rgba(255, 255, 255, 0.64);
+}
+
+.portfolio-row,
+.task-row {
+  display: grid;
+  align-items: center;
+  gap: 12px;
+  min-height: 52px;
+  padding: 10px 12px;
+  border-bottom: 1px solid rgba(32, 36, 44, 0.08);
+}
+
+.portfolio-row {
+  grid-template-columns: minmax(190px, 1.4fr) minmax(120px, 0.8fr) minmax(150px, 0.9fr) 90px minmax(130px, 0.9fr);
+}
+
+.task-row {
+  grid-template-columns: minmax(220px, 1.5fr) minmax(130px, 0.9fr) 110px 90px 70px;
+}
+
+.portfolio-row:last-child,
+.task-row:last-child {
+  border-bottom: 0;
+}
+
+.portfolio-head,
+.task-head {
+  min-height: 38px;
+  background: rgba(32, 36, 44, 0.04);
+  color: var(--muted);
+  font-size: 0.75rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.inline-progress {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  gap: 8px;
+  color: var(--muted);
+  font-size: 0.86rem;
+}
+
+.inline-progress::before {
+  content: "";
+  grid-column: 1;
+  grid-row: 1;
+  height: 8px;
+  border-radius: 999px;
+  background: rgba(32, 36, 44, 0.1);
+}
+
+.inline-progress i {
+  grid-column: 1;
+  grid-row: 1;
+  display: block;
+  height: 8px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--blue), var(--green));
+}
+
+.workplan-project {
+  display: grid;
+  gap: 14px;
+  padding: 16px;
+}
+
+.workplan-project-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.workplan-project-head p {
+  margin: 6px 0 0;
+  color: var(--muted);
+}
+
+.workplan-meta {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.workplan-meta div {
+  border: 1px solid rgba(32, 36, 44, 0.1);
+  border-radius: var(--radius);
+  padding: 10px;
+  background: rgba(255, 255, 255, 0.56);
+}
+
+.workplan-meta span {
+  display: block;
+  color: var(--muted);
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.workplan-meta strong {
+  display: block;
+  margin-top: 3px;
 }
 
 .tag-row {
@@ -643,20 +757,38 @@ button {
   align-items: center;
 }
 
-.strategy-grid {
-  grid-template-columns: repeat(5, minmax(0, 1fr));
+.owner-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
-.strategy-card {
-  min-height: 260px;
+.owner-card {
+  min-height: 280px;
   padding: 16px;
 }
 
-.strategy-card h3 {
-  margin-bottom: 10px;
+.owner-card {
+  border-top: 4px solid var(--owner-accent);
 }
 
-.strategy-card ul {
+.owner-card header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.owner-card header strong {
+  display: grid;
+  width: 44px;
+  height: 44px;
+  place-items: center;
+  border-radius: 50%;
+  background: rgba(78, 131, 200, 0.12);
+  color: var(--owner-accent);
+  font-size: 1.35rem;
+}
+
+.owner-card ul {
   display: grid;
   gap: 8px;
   margin: 14px 0 0;
@@ -664,11 +796,18 @@ button {
   list-style: none;
 }
 
-.strategy-card li {
+.owner-card li {
+  display: grid;
+  gap: 3px;
   border-radius: var(--radius);
   padding: 10px;
   background: rgba(255, 255, 255, 0.58);
   font-weight: 750;
+}
+
+.owner-card small {
+  color: var(--muted);
+  font-weight: 500;
 }
 
 .modal {
@@ -790,8 +929,11 @@ textarea {
   }
 
   .metric-grid,
-  .project-board,
-  .strategy-grid {
+  .owner-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .workplan-meta {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
@@ -835,8 +977,23 @@ textarea {
   .metric-grid,
   .project-board,
   .kanban,
-  .strategy-grid,
+  .owner-grid,
   .form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .portfolio-row,
+  .task-row {
+    grid-template-columns: 1fr;
+    align-items: start;
+  }
+
+  .portfolio-head,
+  .task-head {
+    display: none;
+  }
+
+  .workplan-meta {
     grid-template-columns: 1fr;
   }
 
