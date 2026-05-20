@@ -3,7 +3,7 @@ const SYNC_CONFIG = window.GS_PROJECT_SYNC || {};
 
 const defaultState = {
   meta: {
-    updatedAt: new Date().toISOString(),
+    updatedAt: "1970-01-01T00:00:00.000Z",
     updatedBy: randomId()
   },
   projects: []
@@ -73,10 +73,14 @@ function normalizeState(nextState) {
 function saveState({ broadcast = true, cloud = true } = {}) {
   state.meta.updatedAt = new Date().toISOString();
   state.meta.updatedBy = state.meta.updatedBy || randomId();
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  persistState();
   if (broadcast && channel) channel.postMessage(state);
   if (cloud && !suppressCloudSave) scheduleCloudSave();
   render();
+}
+
+function persistState() {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
 }
 
 function formatCurrency(value) {
@@ -577,13 +581,21 @@ function scheduleCloudSave() {
   if (!cloudClient) return;
   clearTimeout(cloudSaveTimer);
   cloudSaveTimer = setTimeout(async () => {
-    await cloudClient
+    const { error } = await cloudClient
       .from("project_rooms")
       .upsert({
         room_id: SYNC_CONFIG.roomId,
         payload: state,
         updated_at: state.meta.updatedAt
       });
+    if (error) {
+      els.syncTitle.textContent = "Cloud issue";
+      els.syncCopy.textContent = error.message;
+      showToast("Could not save to cloud.");
+      return;
+    }
+    els.syncTitle.textContent = "Cloud live";
+    els.syncCopy.textContent = "Saved to shared database.";
   }, 450);
 }
 
@@ -594,19 +606,8 @@ async function initCloudSync() {
     await loadSupabaseScript();
     cloudClient = window.supabase.createClient(SYNC_CONFIG.supabaseUrl, SYNC_CONFIG.supabaseAnonKey);
 
-    const { data } = await cloudClient
-      .from("project_rooms")
-      .select("payload,updated_at")
-      .eq("room_id", SYNC_CONFIG.roomId)
-      .maybeSingle();
-
-    if (data?.payload && data.updated_at > state.meta.updatedAt) {
-      suppressCloudSave = true;
-      state = normalizeState(data.payload);
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-      suppressCloudSave = false;
-      render();
-    } else {
+    const pulledRemote = await pullCloudState();
+    if (!pulledRemote && stateHasData(state)) {
       scheduleCloudSave();
     }
 
@@ -621,11 +622,7 @@ async function initCloudSync() {
         const nextPayload = payload.new?.payload;
         if (!nextPayload || nextPayload.meta?.updatedBy === state.meta.updatedBy) return;
         if (nextPayload.meta?.updatedAt <= state.meta.updatedAt) return;
-        suppressCloudSave = true;
-        state = normalizeState(nextPayload);
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-        suppressCloudSave = false;
-        render();
+        applyRemoteState(nextPayload);
         showToast("Live update received.");
       })
       .subscribe();
@@ -637,6 +634,48 @@ async function initCloudSync() {
     els.syncTitle.textContent = "Local live";
     els.syncCopy.textContent = "Cloud sync needs Supabase settings.";
   }
+}
+
+async function pullCloudState({ announce = false } = {}) {
+  if (!cloudClient) return false;
+
+  const { data, error } = await cloudClient
+    .from("project_rooms")
+    .select("payload,updated_at")
+    .eq("room_id", SYNC_CONFIG.roomId)
+    .maybeSingle();
+
+  if (error) throw error;
+  if (!data?.payload) {
+    if (announce) showToast("No cloud data yet.");
+    return false;
+  }
+
+  const remoteState = normalizeState(data.payload);
+  const remoteUpdatedAt = remoteState.meta.updatedAt || data.updated_at || defaultState.meta.updatedAt;
+  const localUpdatedAt = state.meta.updatedAt || defaultState.meta.updatedAt;
+  const shouldUseRemote = !stateHasData(state) || remoteUpdatedAt > localUpdatedAt;
+
+  if (!shouldUseRemote) {
+    if (announce) showToast("Already up to date.");
+    return false;
+  }
+
+  applyRemoteState(remoteState);
+  if (announce) showToast("Synced latest cloud data.");
+  return true;
+}
+
+function applyRemoteState(nextState) {
+  suppressCloudSave = true;
+  state = normalizeState(nextState);
+  persistState();
+  suppressCloudSave = false;
+  render();
+}
+
+function stateHasData(nextState) {
+  return Array.isArray(nextState.projects) && nextState.projects.length > 0;
 }
 
 function loadSupabaseScript() {
@@ -692,6 +731,13 @@ document.addEventListener("click", (event) => {
   if (action === "complete-task") completeTask(projectId, taskId);
   if (action === "export") exportSnapshot();
   if (action === "import") els.importFile.click();
+  if (action === "refresh-sync") {
+    pullCloudState({ announce: true }).catch((error) => {
+      els.syncTitle.textContent = "Cloud issue";
+      els.syncCopy.textContent = error.message;
+      showToast("Could not refresh cloud data.");
+    });
+  }
 });
 
 els.projectForm.addEventListener("submit", (event) => {
@@ -724,7 +770,7 @@ if (channel) {
   channel.addEventListener("message", (event) => {
     if (event.data?.meta?.updatedAt <= state.meta.updatedAt) return;
     state = normalizeState(event.data);
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    persistState();
     render();
   });
 }

@@ -15,7 +15,7 @@
     <link rel="preload" href="assets/fonts/fraunces-latin.woff2" as="font" type="font/woff2" crossorigin>
     <link rel="stylesheet" href="styles.css">
     <script src="config.js"></script>
-    <script src="app.js" defer></script>
+    <script src="app.js?v=3" defer></script>
   </head>
   <body>
     <div class="app-shell">
@@ -55,6 +55,7 @@
             <strong data-sync-title>Local live</strong>
           </div>
           <p data-sync-copy>Saved on this device and live across open tabs.</p>
+          <button class="text-button" type="button" data-action="refresh-sync">Refresh sync</button>
           <button class="text-button" type="button" data-action="export">Copy snapshot</button>
         </div>
       </aside>
