@@ -13,9 +13,9 @@
     <meta name="apple-mobile-web-app-title" content="Aucitya">
     <link rel="preload" href="assets/fonts/bricolage-grotesque-latin.woff2" as="font" type="font/woff2" crossorigin>
     <link rel="preload" href="assets/fonts/fraunces-latin.woff2" as="font" type="font/woff2" crossorigin>
-    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="styles.css?v=6">
     <script src="config.js?v=2"></script>
-    <script src="app.js?v=4" defer></script>
+    <script src="app.js?v=6" defer></script>
   </head>
   <body>
     <div class="app-shell">
@@ -33,13 +33,13 @@
             <span aria-hidden="true">⌂</span> Dashboard
           </button>
           <button type="button" data-view-target="projects" aria-pressed="false">
-            <span aria-hidden="true">▦</span> Projects
+            <span aria-hidden="true">▦</span> Main table
           </button>
           <button type="button" data-view-target="gantt" aria-pressed="false">
-            <span aria-hidden="true">↔</span> Gantt
+            <span aria-hidden="true">↔</span> Timeline
           </button>
           <button type="button" data-view-target="tasks" aria-pressed="false">
-            <span aria-hidden="true">☑</span> Tasks
+            <span aria-hidden="true">☑</span> Board
           </button>
           <button type="button" data-view-target="budget" aria-pressed="false">
             <span aria-hidden="true">₹</span> Budget
@@ -77,7 +77,7 @@
           <div class="section-title">
             <div>
               <p class="eyebrow">Today</p>
-              <h2 id="dashboard-title">Portfolio dashboard</h2>
+              <h2 id="dashboard-title">Command dashboard</h2>
             </div>
             <span class="last-saved" data-last-saved>Saved now</span>
           </div>
@@ -87,7 +87,7 @@
           <div class="dashboard-grid">
             <section class="panel wide-panel" aria-labelledby="portfolio-title">
               <div class="panel-head">
-                <h3 id="portfolio-title">Project workplan</h3>
+                <h3 id="portfolio-title">Projects -> tasks -> owners</h3>
                 <button class="text-button" type="button" data-action="add-project">Add project</button>
               </div>
               <div class="project-list" data-project-cards></div>
@@ -107,9 +107,25 @@
           <div class="section-title">
             <div>
               <p class="eyebrow">Plan</p>
-              <h2 id="projects-title">Projects → tasks → owners</h2>
+              <h2 id="projects-title">Main table</h2>
             </div>
             <button class="button primary" type="button" data-action="add-project">New project</button>
+          </div>
+          <div class="view-toolbar" aria-label="Main table tools">
+            <input type="search" placeholder="Search projects or tasks" data-work-search>
+            <select data-owner-filter aria-label="Filter by owner">
+              <option value="all">All owners</option>
+              <option>Bobby Joshi</option>
+              <option>Surbhi Kaushik</option>
+              <option>Both</option>
+            </select>
+            <select data-status-filter aria-label="Filter by task status">
+              <option value="all">All statuses</option>
+              <option value="todo">To do</option>
+              <option value="doing">Doing</option>
+              <option value="blocked">Blocked</option>
+              <option value="done">Done</option>
+            </select>
           </div>
           <div class="project-board" data-project-board></div>
         </section>
@@ -118,7 +134,7 @@
           <div class="section-title">
             <div>
               <p class="eyebrow">Timeline</p>
-              <h2 id="gantt-title">Gantt view</h2>
+              <h2 id="gantt-title">Timeline view</h2>
             </div>
             <button class="button secondary" type="button" data-action="add-milestone">Add milestone</button>
           </div>
@@ -131,7 +147,7 @@
           <div class="section-title">
             <div>
               <p class="eyebrow">Execution</p>
-              <h2 id="tasks-title">Task board</h2>
+              <h2 id="tasks-title">Board view</h2>
             </div>
             <button class="button primary" type="button" data-action="add-task">Add task</button>
           </div>
@@ -248,6 +264,8 @@
           </div>
           <button class="icon-button" type="button" data-action="close-task-modal" aria-label="Close" title="Close">×</button>
         </div>
+        <input type="hidden" name="id">
+        <input type="hidden" name="originalProjectId">
         <div class="form-grid">
           <label class="full">
             Task
@@ -266,7 +284,24 @@
             </select>
           </label>
           <label>
-            Due date
+            Milestone / stage
+            <input name="milestone" maxlength="60" placeholder="Planning">
+          </label>
+          <label>
+            Priority
+            <select name="priority">
+              <option>Low</option>
+              <option selected>Medium</option>
+              <option>High</option>
+              <option>Critical</option>
+            </select>
+          </label>
+          <label>
+            Start date
+            <input name="start" type="date" required>
+          </label>
+          <label>
+            End date
             <input name="due" type="date" required>
           </label>
           <label>
@@ -274,6 +309,7 @@
             <select name="status">
               <option value="todo">To do</option>
               <option value="doing">Doing</option>
+              <option value="blocked">Blocked</option>
               <option value="done">Done</option>
             </select>
           </label>
