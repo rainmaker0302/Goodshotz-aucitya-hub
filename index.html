@@ -1,0 +1,327 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <title>GoodShotz and Aucitya | Project Hub</title>
+    <meta
+      name="description"
+      content="A shared project management hub for GoodShotz and Aucitya, with projects, strategies, Gantt charts, budgets, tasks, ownership, milestones, and dashboards."
+    >
+    <meta name="theme-color" content="#f7e7ee">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-title" content="G+A Hub">
+    <link rel="preload" href="assets/fonts/bricolage-grotesque-latin.woff2" as="font" type="font/woff2" crossorigin>
+    <link rel="preload" href="assets/fonts/fraunces-latin.woff2" as="font" type="font/woff2" crossorigin>
+    <link rel="stylesheet" href="styles.css">
+    <script src="config.js"></script>
+    <script src="app.js" defer></script>
+  </head>
+  <body>
+    <div class="app-shell">
+      <aside class="sidebar" aria-label="Project hub navigation">
+        <a class="hub-brand" href="./" aria-label="GoodShotz and Aucitya project hub">
+          <span class="hub-mark">G+A</span>
+          <span>
+            <strong>GoodShotz</strong>
+            <small>and Aucitya</small>
+          </span>
+        </a>
+
+        <nav class="view-nav" aria-label="Hub views">
+          <button class="is-active" type="button" data-view-target="dashboard" aria-pressed="true">
+            <span aria-hidden="true">⌂</span> Dashboard
+          </button>
+          <button type="button" data-view-target="projects" aria-pressed="false">
+            <span aria-hidden="true">▦</span> Projects
+          </button>
+          <button type="button" data-view-target="gantt" aria-pressed="false">
+            <span aria-hidden="true">↔</span> Gantt
+          </button>
+          <button type="button" data-view-target="tasks" aria-pressed="false">
+            <span aria-hidden="true">☑</span> Tasks
+          </button>
+          <button type="button" data-view-target="budget" aria-pressed="false">
+            <span aria-hidden="true">₹</span> Budget
+          </button>
+          <button type="button" data-view-target="strategy" aria-pressed="false">
+            <span aria-hidden="true">✦</span> Strategy
+          </button>
+        </nav>
+
+        <div class="sync-card">
+          <div>
+            <span class="sync-dot" data-sync-dot></span>
+            <strong data-sync-title>Local live</strong>
+          </div>
+          <p data-sync-copy>Saved on this device and live across open tabs.</p>
+          <button class="text-button" type="button" data-action="export">Copy snapshot</button>
+        </div>
+      </aside>
+
+      <main class="workspace">
+        <header class="topbar">
+          <div>
+            <p class="eyebrow">Shared command center</p>
+            <h1>Projects, strategy, money, and momentum.</h1>
+          </div>
+          <div class="topbar-actions">
+            <button class="icon-button" type="button" data-action="import" aria-label="Import data" title="Import data">⇩</button>
+            <button class="button secondary" type="button" data-action="add-task">Add task</button>
+            <button class="button primary" type="button" data-action="add-project">New project</button>
+          </div>
+        </header>
+
+        <section class="view is-active" id="dashboard" data-view="dashboard" aria-labelledby="dashboard-title">
+          <div class="section-title">
+            <div>
+              <p class="eyebrow">Today</p>
+              <h2 id="dashboard-title">Portfolio dashboard</h2>
+            </div>
+            <span class="last-saved" data-last-saved>Saved now</span>
+          </div>
+
+          <div class="metric-grid" data-metrics></div>
+
+          <div class="dashboard-grid">
+            <section class="panel wide-panel" aria-labelledby="portfolio-title">
+              <div class="panel-head">
+                <h3 id="portfolio-title">Active projects</h3>
+                <button class="text-button" type="button" data-action="add-project">Add project</button>
+              </div>
+              <div class="project-list" data-project-cards></div>
+            </section>
+
+            <section class="panel" aria-labelledby="milestone-title">
+              <div class="panel-head">
+                <h3 id="milestone-title">Next milestones</h3>
+                <button class="icon-button small" type="button" data-action="add-milestone" aria-label="Add milestone" title="Add milestone">＋</button>
+              </div>
+              <div class="timeline-stack" data-upcoming-milestones></div>
+            </section>
+          </div>
+        </section>
+
+        <section class="view" id="projects" data-view="projects" aria-labelledby="projects-title">
+          <div class="section-title">
+            <div>
+              <p class="eyebrow">Plan</p>
+              <h2 id="projects-title">Projects and ownership</h2>
+            </div>
+            <button class="button primary" type="button" data-action="add-project">New project</button>
+          </div>
+          <div class="project-board" data-project-board></div>
+        </section>
+
+        <section class="view" id="gantt" data-view="gantt" aria-labelledby="gantt-title">
+          <div class="section-title">
+            <div>
+              <p class="eyebrow">Timeline</p>
+              <h2 id="gantt-title">Gantt view</h2>
+            </div>
+            <button class="button secondary" type="button" data-action="add-milestone">Add milestone</button>
+          </div>
+          <div class="panel gantt-panel">
+            <div class="gantt" data-gantt></div>
+          </div>
+        </section>
+
+        <section class="view" id="tasks" data-view="tasks" aria-labelledby="tasks-title">
+          <div class="section-title">
+            <div>
+              <p class="eyebrow">Execution</p>
+              <h2 id="tasks-title">Task board</h2>
+            </div>
+            <button class="button primary" type="button" data-action="add-task">Add task</button>
+          </div>
+          <div class="kanban" data-task-board></div>
+        </section>
+
+        <section class="view" id="budget" data-view="budget" aria-labelledby="budget-title">
+          <div class="section-title">
+            <div>
+              <p class="eyebrow">Money</p>
+              <h2 id="budget-title">Budgets and spend</h2>
+            </div>
+            <button class="button secondary" type="button" data-action="add-project">Add budget</button>
+          </div>
+          <div class="budget-layout" data-budget-board></div>
+        </section>
+
+        <section class="view" id="strategy" data-view="strategy" aria-labelledby="strategy-title">
+          <div class="section-title">
+            <div>
+              <p class="eyebrow">Direction</p>
+              <h2 id="strategy-title">Strategy map</h2>
+            </div>
+          </div>
+          <div class="strategy-grid" data-strategy-board></div>
+        </section>
+      </main>
+    </div>
+
+    <dialog class="modal" data-project-modal>
+      <form method="dialog" class="modal-card" data-project-form>
+        <div class="modal-head">
+          <div>
+            <p class="eyebrow">Project</p>
+            <h2 data-project-modal-title>New project</h2>
+          </div>
+          <button class="icon-button" type="button" data-action="close-modal" aria-label="Close" title="Close">×</button>
+        </div>
+
+        <input type="hidden" name="id">
+        <div class="form-grid">
+          <label>
+            Project name
+            <input name="name" required maxlength="80" placeholder="Kashmir autumn campaign">
+          </label>
+          <label>
+            Owner
+            <select name="owner">
+              <option>GoodShotz</option>
+              <option>Aucitya</option>
+              <option>Both</option>
+            </select>
+          </label>
+          <label>
+            Strategy
+            <select name="strategy">
+              <option>Growth</option>
+              <option>Operations</option>
+              <option>Creative</option>
+              <option>Finance</option>
+              <option>Family</option>
+            </select>
+          </label>
+          <label>
+            Status
+            <select name="status">
+              <option value="planning">Planning</option>
+              <option value="active">Active</option>
+              <option value="watch">Watch</option>
+              <option value="done">Done</option>
+            </select>
+          </label>
+          <label>
+            Start date
+            <input name="start" type="date" required>
+          </label>
+          <label>
+            End date
+            <input name="end" type="date" required>
+          </label>
+          <label>
+            Budget
+            <input name="budget" type="number" min="0" step="1000" required>
+          </label>
+          <label>
+            Spent
+            <input name="spent" type="number" min="0" step="1000" required>
+          </label>
+          <label class="full">
+            Project color
+            <input name="color" type="color" value="#f2a7bd">
+          </label>
+          <label class="full">
+            Project note
+            <textarea name="note" rows="4" maxlength="260" placeholder="What does success look like?"></textarea>
+          </label>
+        </div>
+
+        <div class="modal-actions">
+          <button class="button danger" type="button" data-action="delete-project">Delete</button>
+          <span></span>
+          <button class="button secondary" type="button" data-action="close-modal">Cancel</button>
+          <button class="button primary" type="submit">Save project</button>
+        </div>
+      </form>
+    </dialog>
+
+    <dialog class="modal" data-task-modal>
+      <form method="dialog" class="modal-card compact" data-task-form>
+        <div class="modal-head">
+          <div>
+            <p class="eyebrow">Task</p>
+            <h2>New task</h2>
+          </div>
+          <button class="icon-button" type="button" data-action="close-task-modal" aria-label="Close" title="Close">×</button>
+        </div>
+        <div class="form-grid">
+          <label class="full">
+            Task
+            <input name="title" required maxlength="90" placeholder="Confirm vendors and advance payments">
+          </label>
+          <label>
+            Project
+            <select name="projectId" data-project-options></select>
+          </label>
+          <label>
+            Owner
+            <select name="owner">
+              <option>GoodShotz</option>
+              <option>Aucitya</option>
+              <option>Both</option>
+            </select>
+          </label>
+          <label>
+            Due date
+            <input name="due" type="date" required>
+          </label>
+          <label>
+            Status
+            <select name="status">
+              <option value="todo">To do</option>
+              <option value="doing">Doing</option>
+              <option value="done">Done</option>
+            </select>
+          </label>
+        </div>
+        <div class="modal-actions end">
+          <button class="button secondary" type="button" data-action="close-task-modal">Cancel</button>
+          <button class="button primary" type="submit">Save task</button>
+        </div>
+      </form>
+    </dialog>
+
+    <dialog class="modal" data-milestone-modal>
+      <form method="dialog" class="modal-card compact" data-milestone-form>
+        <div class="modal-head">
+          <div>
+            <p class="eyebrow">Milestone</p>
+            <h2>New milestone</h2>
+          </div>
+          <button class="icon-button" type="button" data-action="close-milestone-modal" aria-label="Close" title="Close">×</button>
+        </div>
+        <div class="form-grid">
+          <label class="full">
+            Milestone
+            <input name="title" required maxlength="90" placeholder="Final itinerary locked">
+          </label>
+          <label>
+            Project
+            <select name="projectId" data-project-options></select>
+          </label>
+          <label>
+            Date
+            <input name="due" type="date" required>
+          </label>
+          <label>
+            Status
+            <select name="status">
+              <option value="upcoming">Upcoming</option>
+              <option value="done">Done</option>
+            </select>
+          </label>
+        </div>
+        <div class="modal-actions end">
+          <button class="button secondary" type="button" data-action="close-milestone-modal">Cancel</button>
+          <button class="button primary" type="submit">Save milestone</button>
+        </div>
+      </form>
+    </dialog>
+
+    <input class="hidden-file" type="file" accept="application/json" data-import-file>
+    <div class="toast" data-toast role="status" aria-live="polite"></div>
+  </body>
+</html>
