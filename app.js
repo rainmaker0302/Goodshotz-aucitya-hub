@@ -29,6 +29,7 @@ const els = {
   projectCards: document.querySelector("[data-project-cards]"),
   projectBoard: document.querySelector("[data-project-board]"),
   upcoming: document.querySelector("[data-upcoming-milestones]"),
+  taskDashboard: document.querySelector("[data-task-dashboard]"),
   gantt: document.querySelector("[data-gantt]"),
   taskBoard: document.querySelector("[data-task-board]"),
   budgetBoard: document.querySelector("[data-budget-board]"),
@@ -84,7 +85,8 @@ function normalizeState(nextState) {
       start: task.start || task.due || project.start,
       due: task.due || task.end || project.end,
       priority: task.priority || "Medium",
-      milestone: task.milestone || "General"
+      milestone: task.milestone || "General",
+      note: task.note || ""
     }))
   }));
 
@@ -118,6 +120,10 @@ function formatDate(value) {
 
 function daysBetween(start, end) {
   return Math.max(1, Math.round((new Date(`${end}T00:00:00`) - new Date(`${start}T00:00:00`)) / 86400000));
+}
+
+function dateOffsetDays(start, end) {
+  return Math.max(0, Math.round((new Date(`${end}T00:00:00`) - new Date(`${start}T00:00:00`)) / 86400000));
 }
 
 function todayISO() {
@@ -180,6 +186,7 @@ function render() {
   renderProjectCards();
   renderProjectBoard();
   renderMilestones();
+  renderTaskDashboard();
   renderGantt();
   renderTasks();
   renderBudget();
@@ -410,6 +417,73 @@ function renderMilestones() {
   `).join("") : `<p>No upcoming milestones.</p>`;
 }
 
+function renderTaskDashboard() {
+  const tasks = allTasks().sort((a, b) => (a.start || a.due || "").localeCompare(b.start || b.due || ""));
+
+  if (!tasks.length) {
+    els.taskDashboard.innerHTML = emptyState("No tasks yet", "Add tasks to see task timings and Gantt bars here.");
+    return;
+  }
+
+  const openTasks = tasks.filter((task) => task.status !== "done");
+  const blockedTasks = tasks.filter((task) => task.status === "blocked");
+  const doneTasks = tasks.filter((task) => task.status === "done");
+
+  els.taskDashboard.innerHTML = `
+    <div class="task-overview-grid">
+      <article><span>Open tasks</span><strong>${openTasks.length}</strong></article>
+      <article><span>Blocked</span><strong>${blockedTasks.length}</strong></article>
+      <article><span>Done</span><strong>${doneTasks.length}</strong></article>
+      <article><span>Longest task</span><strong>${longestTaskLabel(tasks)}</strong></article>
+    </div>
+    ${taskGantt(tasks)}
+  `;
+}
+
+function taskGantt(tasks) {
+  const starts = tasks.map((task) => task.start || task.due).filter(Boolean).sort();
+  const ends = tasks.map((task) => task.due || task.start).filter(Boolean).sort();
+  const start = starts[0] || todayISO();
+  const end = ends[ends.length - 1] || todayISO();
+  const totalDays = daysBetween(start, end);
+  const months = monthsBetween(start, end);
+
+  return `
+    <div class="task-gantt" style="--month-count:${months.length}">
+      <div class="task-gantt-header">
+        <span>Task</span>
+        <div>${months.map((month) => `<span>${month}</span>`).join("")}</div>
+      </div>
+      ${tasks.map((task) => {
+        const taskStart = task.start || task.due || start;
+        const taskEnd = task.due || task.start || taskStart;
+        const left = Math.max(0, (dateOffsetDays(start, taskStart) / totalDays) * 100);
+        const width = Math.max(4, (daysBetween(taskStart, taskEnd) / totalDays) * 100);
+        return `
+          <article class="task-gantt-row">
+            <div class="task-gantt-label">
+              <strong>${escapeHtml(task.title)}</strong>
+              <span>${escapeHtml(task.project.name)} · ${escapeHtml(task.owner)} · ${taskDurationLabel(task)}</span>
+            </div>
+            <div class="task-gantt-track">
+              <span class="task-gantt-bar status-${task.status}" style="--bar-left:${left}%;--bar-width:${width}%">
+                <b>${taskDateRange(task)}</b>
+              </span>
+            </div>
+          </article>
+        `;
+      }).join("")}
+    </div>
+  `;
+}
+
+function longestTaskLabel(tasks) {
+  const longest = tasks
+    .slice()
+    .sort((a, b) => taskDurationDays(b) - taskDurationDays(a))[0];
+  return longest ? taskDurationLabel(longest) : "0 days";
+}
+
 function renderGantt() {
   if (!state.projects.length) {
     els.gantt.innerHTML = emptyState("No timeline yet", "Add a project first, then its date range will appear here.");
@@ -431,10 +505,10 @@ function renderGantt() {
       <div class="gantt-months">${months.map((month) => `<span>${month}</span>`).join("")}</div>
     </div>
     ${state.projects.map((project) => {
-      const left = Math.max(0, (daysBetween(start, project.start) / totalDays) * 100);
+      const left = Math.max(0, (dateOffsetDays(start, project.start) / totalDays) * 100);
       const width = Math.max(3, (daysBetween(project.start, project.end) / totalDays) * 100);
       const markers = project.milestones.map((milestone) => {
-        const dotLeft = Math.max(0, Math.min(100, (daysBetween(start, milestone.due) / totalDays) * 100));
+        const dotLeft = Math.max(0, Math.min(100, (dateOffsetDays(start, milestone.due) / totalDays) * 100));
         return `<span class="gantt-milestone" style="--dot-left:${dotLeft}%" title="${escapeHtml(milestone.title)}"></span>`;
       }).join("");
       return `
@@ -496,6 +570,7 @@ function taskCard(task) {
         <span class="tag priority-${priorityClass(task.priority)}">${escapeHtml(task.priority || "Medium")}</span>
         <span class="tag">${taskDateRange(task)}</span>
       </div>
+      ${task.note ? `<p class="task-note">${escapeHtml(task.note)}</p>` : ""}
       <div class="task-card-actions">
         <button class="text-button" type="button" data-action="edit-task" data-project-id="${task.project.id}" data-task-id="${task.id}">Edit</button>
         ${task.status !== "done" ? `<button class="text-button" type="button" data-action="complete-task" data-project-id="${task.project.id}" data-task-id="${task.id}">Mark done</button>` : ""}
@@ -596,6 +671,15 @@ function taskDateRange(task) {
   return `${formatDate(start).replace(" 2026", "")} -> ${formatDate(end).replace(" 2026", "")}`;
 }
 
+function taskDurationDays(task) {
+  return daysBetween(task.start || task.due || todayISO(), task.due || task.start || todayISO());
+}
+
+function taskDurationLabel(task) {
+  const days = taskDurationDays(task);
+  return `${days} ${days === 1 ? "day" : "days"}`;
+}
+
 function priorityClass(priority) {
   return String(priority || "Medium").toLowerCase();
 }
@@ -640,6 +724,7 @@ function openTaskModal(projectId, taskId) {
   form.elements.start.value = task?.start || todayISO();
   form.elements.due.value = task?.due || todayISO();
   form.elements.status.value = task?.status || "todo";
+  form.elements.note.value = task?.note || "";
   els.taskForm.querySelector(".modal-head h2").textContent = task ? "Edit task" : "New task";
   els.taskModal.showModal();
 }
@@ -696,7 +781,8 @@ function saveTask(formData) {
     priority: String(formData.get("priority") || "Medium"),
     start: String(formData.get("start")),
     due: String(formData.get("due")),
-    status: String(formData.get("status"))
+    status: String(formData.get("status")),
+    note: String(formData.get("note") || "").trim()
   };
 
   if (payload.due < payload.start) {

@@ -13,9 +13,9 @@
     <meta name="apple-mobile-web-app-title" content="Aucitya">
     <link rel="preload" href="assets/fonts/bricolage-grotesque-latin.woff2" as="font" type="font/woff2" crossorigin>
     <link rel="preload" href="assets/fonts/fraunces-latin.woff2" as="font" type="font/woff2" crossorigin>
-    <link rel="stylesheet" href="styles.css?v=6">
+    <link rel="stylesheet" href="styles.css?v=7">
     <script src="config.js?v=2"></script>
-    <script src="app.js?v=6" defer></script>
+    <script src="app.js?v=7" defer></script>
   </head>
   <body>
     <div class="app-shell">
@@ -101,6 +101,17 @@
               <div class="timeline-stack" data-upcoming-milestones></div>
             </section>
           </div>
+
+          <section class="panel task-dashboard-panel" aria-labelledby="task-dashboard-title">
+            <div class="panel-head">
+              <div>
+                <h3 id="task-dashboard-title">Task dashboard</h3>
+                <p>Task-level timeline, owner, status, and timing.</p>
+              </div>
+              <button class="button secondary" type="button" data-action="add-task">Add task</button>
+            </div>
+            <div data-task-dashboard></div>
+          </section>
         </section>
 
         <section class="view" id="projects" data-view="projects" aria-labelledby="projects-title">
@@ -312,6 +323,10 @@
               <option value="blocked">Blocked</option>
               <option value="done">Done</option>
             </select>
+          </label>
+          <label class="full">
+            Notes
+            <textarea name="note" rows="4" maxlength="500" placeholder="Add context, decisions, blockers, links, or next steps"></textarea>
           </label>
         </div>
         <div class="modal-actions end">
